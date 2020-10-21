@@ -1,0 +1,6 @@
+---
+server_info:
+  server: mail.mailserver.net
+  username: mail_server@mailserver.net
+  port: 110
+  SSL_enabled: true
