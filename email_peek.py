@@ -1,11 +1,10 @@
 import poplib
 import yaml
-import datetime
 
 
 # Convert Byte array to a Python String
 def convert_to_string(input_bytes):
-	return "".join(map(chr, input_bytes))
+	return input_bytes.decode('UTF-8')
 
 
 def load_pymail_config():
@@ -15,7 +14,7 @@ def load_pymail_config():
 	with open('email_peek.yml', 'r') as config_file:
 		pymail_config = yaml.load(config_file)
 
-	with open('server_password', 'r') as password_file:
+	with open('email_password', 'r') as password_file:
 		server_password = password_file.readline().rstrip()
 
 	pymail_config['server_info']['password'] = server_password
@@ -69,33 +68,28 @@ def process_header(header_list):
 	subject_filed = ""
 	from_field = ""
 	to_field = ""
+	date_field = ""
 
 	for hb in header_list:
 		field = get_header_field(hb)
 		if field == "Subject":
 			subject_filed = convert_to_string(hb)
-			print("\t", subject_filed)
 		elif field == "To":
 			to_field = convert_to_string(hb)
-			print("\t", to_field, " - ", extract_address(to_field))
 		elif field == "From":
 			from_field = convert_to_string(hb)
-			print("\t", from_field, " - ", extract_address(from_field))
 		elif field == "Date":
 			date_field = convert_to_string(hb)
-			print("\t", date_field)
-			try:
-				date_field = date_field.replace(" (UTC)", "")
-				datetime_obj = datetime.strptime(date_field, "Date: %a, %d %b %Y %H:%M:%S %z")
-			except ValueError:
-				print("Error parsing Date from e-mail into a Python datetime object")
+
+	print("\t", to_field, " - ", extract_address(to_field))
+	print("\t", from_field, " - ", extract_address(from_field))
+	print("\t", subject_filed)
+	print("\t", date_field)
 
 
 def peek_message(mserver, message_index):
-	message = mserver.list(message_index)
+	print("----")
 	process_header(mserver.top(message_index, 0)[1])
-	process_response(message[0])
-	print("\tSize: " + message[2])
 
 
 ###############################################################################
@@ -127,3 +121,5 @@ print("INFO:    Number of Messages: ", numMessages)
 
 for msg_index in range(1, numMessages + 1):
 	peek_message(M, msg_index)
+
+M.quit()
